@@ -1,43 +1,45 @@
+"
+To encode a hollow matrix from a matrix in its traditional form (array of arrays). This program must create the hollow matrix representation from its traditional representation, and conversely, create the traditional representation from the hollow matrix representation.
+"
 Class {
 	#name : 'HollowMatrix',
 	#superclass : 'Object',
+	#instVars : [
+		'hollowMatrix',
+		'dimension',
+		'maxRow'
+	],
 	#category : 'Excercise',
 	#package : 'Excercise'
 }
 
-{ #category : 'as yet unclassified' }
+{ #category : 'operation' }
 HollowMatrix >> arraysFromhollowMatrix [
-	"Hollow matrix representation from its traditional representation(array of arrays)"
+	"This method handles the user input and conversion of hollow to traditional matrix"
 	"scope: class-variables  &  instance-variables"
 
 
-	| nonZeroElements traditionalArray dimension hollowMatrix maxRow maxCol item k|
+	| nonZeroElements traditionalArray|
 	
 	dimension := (UIManager default request: 'Enter the size n (of nXn matrix) of hollow matrix') asInteger .
-	hollowMatrix:= Array new:dimension.
-	1 to: dimension do:[:position|
-		hollowMatrix at: position put: (Array new:dimension withAll:0).
-		].
+	self initializeHollowMatrix: dimension.
 	
-	nonZeroElements:=0.
-	1 to: dimension do:[:row|
-		1 to: dimension do: [ :column|
-			(row = column or: [column = (dimension - row + 1)]) ifTrue: [ 
-				item:= (UIManager default request: ('Enter the value at (', row printString, ',', column printString, ')')) asInteger.
-				(hollowMatrix at: row) at:column put: item.
-				item~=0 ifTrue: [nonZeroElements:=nonZeroElements+1].
-			 ].
-		]. 
-	].
+	nonZeroElements:=self populateHollowMatrix.
+	traditionalArray:= self convertToTraditionalArray: nonZeroElements.
+
+	^traditionalArray 
+
+]
+
+{ #category : 'operation' }
+HollowMatrix >> convertToTraditionalArray:nonZeroElements [
+	"Convertion from hollow representation to Traditional array representation"
+	"scope: class-variables  &  instance-variables"
+	|traditionalArray k|
 	
-	maxRow := 3.
-	maxCol := nonZeroElements.
-	
-	traditionalArray:= Array new:3.
-	1 to: 3 do:[:i|
-		traditionalArray at: i put: (Array new:nonZeroElements).
-		].
-	
+	traditionalArray:= Array new:maxRow.
+
+	traditionalArray:= (1 to: maxRow) collect:[:position| traditionalArray at: position put: (Array new:nonZeroElements)].
 	
 	k := 1.
 	1 to: dimension do: [:row|
@@ -50,13 +52,20 @@ HollowMatrix >> arraysFromhollowMatrix [
 				 ].
 		 ].
 	].
-	
-	
-	^traditionalArray 
-
+^traditionalArray.
 ]
 
-{ #category : 'as yet unclassified' }
+{ #category : 'accessing' }
+HollowMatrix >> dimension [
+	^ dimension
+]
+
+{ #category : 'accessing' }
+HollowMatrix >> hollowMatrix [
+	^ hollowMatrix
+]
+
+{ #category : 'operation' }
 HollowMatrix >> hollowMatrixFromArrays [
 	"Hollow matrix representation from its traditional representation(array of arrays)"
 	"scope: class-variables  &  instance-variables"
@@ -89,4 +98,46 @@ HollowMatrix >> hollowMatrixFromArrays [
 	
 	^hollowMatrix 
 
+]
+
+{ #category : 'initialization' }
+HollowMatrix >> initializeHollowMatrix:size [
+	"This method create hollow matrix of given size and set all elemets to zero"
+	"scope: class-variables  &  instance-variables"
+	maxRow := 3.
+	dimension := size .
+	hollowMatrix:= Array new:size.
+	hollowMatrix := (1 to: size) collect:[:position| Array new:size withAll:0].
+
+	
+	
+]
+
+{ #category : 'accessing' }
+HollowMatrix >> maxRow [
+	^ maxRow 
+]
+
+{ #category : 'operation' }
+HollowMatrix >> populateHollowMatrix [
+	"To initialize"
+	"scope: class-variables  &  instance-variables"
+
+	|  dimension nonZeroElements item|
+	
+	dimension := hollowMatrix size.
+	nonZeroElements:=0.
+	
+	1 to: dimension do:[:row|
+		1 to: dimension do: [ :column|
+			(row = column or: [column = (dimension - row + 1)]) ifTrue: [ 
+				item:= (UIManager default request: ('Enter the value at (', row printString, ',', column printString, ')')) asInteger.
+				(hollowMatrix at: row) at:column put: item.
+				item~=0 ifTrue: [nonZeroElements:=nonZeroElements+1].
+			 ].
+		]. 
+	].
+
+	^nonZeroElements.
+	
 ]
