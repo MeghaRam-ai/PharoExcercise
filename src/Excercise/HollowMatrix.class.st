@@ -5,9 +5,7 @@ Class {
 	#name : 'HollowMatrix',
 	#superclass : 'Object',
 	#instVars : [
-		'hollowMatrix',
-		'dimension',
-		'maxRow'
+		'dimension'
 	],
 	#category : 'Excercise',
 	#package : 'Excercise'
@@ -16,43 +14,77 @@ Class {
 { #category : 'operation' }
 HollowMatrix >> arraysFromhollowMatrix [
 	"This method handles the user input and conversion of hollow to traditional matrix"
+
 	"scope: class-variables  &  instance-variables"
 
+	| input nonZeroElements traditionalArray aHollowMatrix |
+	input := UIManager default request:
+		         'Enter the size n (of nXn matrix) of hollow matrix'.
+	(input isNil or: [ input isEmpty ]) ifTrue: [
+		UIManager default inform: 'Input cannot be empty'.
+		^ self ].
+	(input allSatisfy: [ :char | char isDigit or: [ char = $- ] ])
+		ifFalse: [
+			UIManager default inform: 'Please enter a valid integer'.
+			^ self ].
 
-	| nonZeroElements traditionalArray|
-	
-	dimension := (UIManager default request: 'Enter the size n (of nXn matrix) of hollow matrix') asInteger .
-	self initializeHollowMatrix: dimension.
-	
-	nonZeroElements:=self populateHollowMatrix.
-	traditionalArray:= self convertToTraditionalArray: nonZeroElements.
+	dimension := input asInteger.
 
-	^traditionalArray 
+	aHollowMatrix := self hollowMatrix.
+	aHollowMatrix := self populateHollowMatrix: aHollowMatrix.
 
+	nonZeroElements := self calculateNonZeroElements: aHollowMatrix.
+
+	traditionalArray := self
+		                    convertToTraditionalArray: nonZeroElements
+		                    and: aHollowMatrix.
+
+	^ traditionalArray
 ]
 
 { #category : 'operation' }
-HollowMatrix >> convertToTraditionalArray:nonZeroElements [
-	"Convertion from hollow representation to Traditional array representation"
-	"scope: class-variables  &  instance-variables"
-	|traditionalArray k|
-	
-	traditionalArray:= Array new:maxRow.
+HollowMatrix >> calculateNonZeroElements: aHollowMatrix [
+	"To calculate the non zero elements. "
 
-	traditionalArray:= (1 to: maxRow) collect:[:position| traditionalArray at: position put: (Array new:nonZeroElements)].
-	
+	"scope: class-variables  &  instance-variables"
+
+	| nonZeroElements |
+	nonZeroElements := 0.
+
+	1 to: dimension do: [ :row |
+		1 to: dimension do: [ :column |
+			(row = column or: [ column = (dimension - row + 1) ]) ifTrue: [
+				((aHollowMatrix at: row) at: column) ~= 0 ifTrue: [
+					nonZeroElements := nonZeroElements + 1 ] ] ] ].
+
+	^ nonZeroElements
+]
+
+{ #category : 'operation' }
+HollowMatrix >> convertToTraditionalArray: nonZeroElements and: aHollowMatrix [
+	"For the conversion of array to hollow matrix. Number of non zero elements will be the number of columns of traditional array"
+
+	"scope: class-variables  &  instance-variables"
+
+	| traditionalArray k |
+	traditionalArray := Array new: 3.
+
+	traditionalArray := (1 to: 3) collect: [ :position |
+		                    traditionalArray
+			                    at: position
+			                    put: (Array new: nonZeroElements) ].
+
 	k := 1.
-	1 to: dimension do: [:row|
-		1 to: dimension do: [:column|
-			((hollowMatrix at: row) at: column) ~=0 ifTrue: [ 
-				(traditionalArray at: 1) at:k put: row.
-				(traditionalArray at: 2) at:k put: column.
-				(traditionalArray at: 3) at:k put: ((hollowMatrix at: row) at: column).
-				k:=k+1.
-				 ].
-		 ].
-	].
-^traditionalArray.
+	1 to: dimension do: [ :row |
+		1 to: dimension do: [ :column |
+			((aHollowMatrix at: row) at: column) ~= 0 ifTrue: [
+				(traditionalArray at: 1) at: k put: row.
+				(traditionalArray at: 2) at: k put: column.
+				(traditionalArray at: 3)
+					at: k
+					put: ((aHollowMatrix at: row) at: column).
+				k := k + 1 ] ] ].
+	^ traditionalArray
 ]
 
 { #category : 'accessing' }
@@ -61,83 +93,48 @@ HollowMatrix >> dimension [
 ]
 
 { #category : 'accessing' }
-HollowMatrix >> hollowMatrix [
-	^ hollowMatrix
-]
+HollowMatrix >> dimension: anObject [
 
-{ #category : 'operation' }
-HollowMatrix >> hollowMatrixFromArrays [
-	"Hollow matrix representation from its traditional representation(array of arrays)"
-	"scope: class-variables  &  instance-variables"
-
-
-	| nonZeroElements traditionalArray row dimension hollowMatrix rowIndex colIndex item|
-	nonZeroElements := (UIManager default request: 'Enter the number of non zero elements') asInteger .
-	traditionalArray:= Array new:3.
-	
-	1 to: 3 do:[:i|
-		row := (UIManager default request: 'Enter the elements of row ', i printString).
-		row := row splitOn: ' '.
-		row := row collect: [ :each|each asInteger ].
-		traditionalArray at: i put: row asArray.
-		].
-	
-	dimension := (traditionalArray at:1)max max:(traditionalArray at:1)max.
-	hollowMatrix:= Array new:dimension.
-	
-	1 to: dimension do:[:position|
-		hollowMatrix at: position put: (Array new:dimension withAll:0).
-		].
-	
-	1 to: nonZeroElements do: [ :colPosition|
-		rowIndex:= (traditionalArray at: 1) at:colPosition.
-		colIndex:= (traditionalArray at: 2) at:colPosition.
-		item:= (traditionalArray at: 3) at:colPosition.
-		(hollowMatrix at: rowIndex) at:colIndex put: item.
-		 ].
-	
-	^hollowMatrix 
-
-]
-
-{ #category : 'initialization' }
-HollowMatrix >> initializeHollowMatrix:size [
-	"This method create hollow matrix of given size and set all elemets to zero"
-	"scope: class-variables  &  instance-variables"
-	maxRow := 3.
-	dimension := size .
-	hollowMatrix:= Array new:size.
-	hollowMatrix := (1 to: size) collect:[:position| Array new:size withAll:0].
-
-	
-	
+	dimension := anObject
 ]
 
 { #category : 'accessing' }
-HollowMatrix >> maxRow [
-	^ maxRow 
+HollowMatrix >> hollowMatrix [
+	"To initialise hollow matrix with all zeros"
+
+	| hollowMatrix |
+	hollowMatrix := Array new: dimension.
+	hollowMatrix := (1 to: dimension) collect: [ :position |
+		                Array new: dimension withAll: 0 ].
+	^ hollowMatrix
+]
+
+{ #category : 'initialization' }
+HollowMatrix >> initialize [
+	"scope: class-variables  &  instance-variables"
+
+	super initialize
 ]
 
 { #category : 'operation' }
-HollowMatrix >> populateHollowMatrix [
-	"To initialize"
+HollowMatrix >> populateHollowMatrix: hollowMatrix [
+	"To populate hollow matrix from user input"
+
 	"scope: class-variables  &  instance-variables"
 
-	|  dimension nonZeroElements item|
-	
-	dimension := hollowMatrix size.
-	nonZeroElements:=0.
-	
-	1 to: dimension do:[:row|
-		1 to: dimension do: [ :column|
-			(row = column or: [column = (dimension - row + 1)]) ifTrue: [ 
-				item:= (UIManager default request: ('Enter the value at (', row printString, ',', column printString, ')')) asInteger.
-				(hollowMatrix at: row) at:column put: item.
-				item~=0 ifTrue: [nonZeroElements:=nonZeroElements+1].
-			 ].
-		]. 
-	].
+	| item |
+	1 to: dimension do: [ :row |
+		1 to: dimension do: [ :column |
+			(row = column or: [ column = (dimension - row + 1) ]) ifTrue: [
+				item := UIManager default request:
+					        'Enter the value at (' , row printString , ','
+					        , column printString , ')'.
+				(item allSatisfy: [ :char | char isDigit or: [ char = $- ] ])
+					ifFalse: [
+						UIManager default inform: 'Please enter a valid integer'.
+						^ self ].
+				item := item asInteger.
+				(hollowMatrix at: row) at: column put: item ] ] ].
 
-	^nonZeroElements.
-	
+	^ hollowMatrix
 ]
